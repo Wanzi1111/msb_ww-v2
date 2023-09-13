@@ -1,0 +1,116 @@
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-image: url("~@/assets/images/login-background.jpg");
+    background-size: cover;
+}
+
+.login-form {
+    border-radius: 6px;
+    background: #ffffff;
+    width: 400px;
+    min-height: 460px;
+    padding: 25px 25px 25px 25px;
+    position: relative;
+
+    .login-img {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+
+        >img {
+            cursor: pointer;
+        }
+    }
+
+    ::v-deep .login-tab {
+        display: flex;
+        justify-content: space-around;
+        line-height: 40px;
+        margin-bottom: 20px;
+        color: #707070;
+        font-weight: 500;
+
+        >span {
+            box-sizing: border-box;
+            text-align: center;
+            cursor: pointer;
+            height: 40px;
+
+            &:hover {
+                color: #1890ff;
+                border-bottom: 2px solid #1890ff;
+            }
+        }
+
+        .active {
+            color: #1890ff;
+            border-bottom: 2px solid #1890ff;
+        }
+    }
+
+    ::v-deep .btn {
+        >button {
+            width: 100%;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            margin-left: 0;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    ::v-deep .mobileCode {
+        width: 220px;
+        margin-right: 20px;
+    }
+
+    ::v-deep .getMobileCode {
+        width: 110px;
+    }
+
+    ::v-deep .form {
+        margin-bottom: 30px;
+    }
+
+    ::v-deep p {
+        margin: 0;
+    }
+
+    ::v-deep .tip {
+        font-size: 14px;
+        text-align: center;
+        color: #606266;
+    }
+
+    ::v-deep .el-select {
+        width: 100%;
+    }
+
+    ::v-deep .successTip {
+        text-align: center;
+
+        .bg {
+            display: inline-block;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+    }
+}
+
+.el-login-footer {
+    height: 40px;
+    line-height: 40px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-family: Arial;
+    font-size: 12px;
+    letter-spacing: 1px;
+}

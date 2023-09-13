@@ -1,0 +1,137 @@
+stages:
+  - build
+  - deploy
+  # - merge-request
+
+.build:
+  stage: build
+  tags:
+    - k8s
+  script:
+    # 安装依赖 && 编译产物
+    - pnpm set progress=false
+    - pnpm i --prefer-offline
+    - pnpm build:${BASE_VERSION}
+  cache:
+    key: ${CI_COMMIT_REF_NAME}
+    paths:
+      - dist-${BASE_VERSION}/
+
+.deploy:
+  stage: deploy
+  tags:
+    - k8s
+  variables:
+    DEPLOY_USER: "yelei gaodongyu renyuanlong opserver Administratori root"
+    KUBECTL_CLI_OPTS_CONFIG: "kubectl --kubeconfig=/home/gitlab-runner/vip-config"
+    PODS: 1
+  script:
+    - ./mvnw versions:set -DartifactId=ww-user-renter-system -DnewVersion=$(date "+%Y%m%d%H%M%S")
+    - export KUBERNETES_NAMESPACE=${KUBERNETES_NAMESPACE_VALUE}
+    - export BASE_VERSION=${BASE_VERSION}
+    - ./mvnw deploy
+    - "envsubst < target/classes/META-INF/jkube/kubernetes.yml | sed 's/name: ww-user-renter-system/name: '${VERSION_NAME}'/g' | sed 's/replicas: 1/replicas: '${PODS}'/g' | sed 's/app: ww-user-renter-system/app: '${VERSION_NAME}'/g' | sed 's/memory: 2048Mi/memory: 1024Mi/g' | sed 's/cpu: 1000m/cpu: 100m/g'  | ${KUBECTL_CLI_OPTS_CONFIG} apply -f - -n ${KUBERNETES_NAMESPACE}"
+  cache:
+    key: ${CI_COMMIT_REF_NAME}
+    paths:
+      - dist-${BASE_VERSION}/
+
+# build:dev:
+#   extends: .build
+#   variables:
+#     BASE_VERSION: dev
+#   only:
+#     - dev
+#   except:
+#     - tags
+
+build:test:
+  extends: .build
+  variables:
+    BASE_VERSION: test
+  only:
+    - test
+  except:
+    - tags
+
+build:prod:
+  extends: .build
+  variables:
+    BASE_VERSION: prod
+  only:
+    - prod
+  except:
+    - tags
+
+build:live:
+  extends: .build
+  variables:
+    BASE_VERSION: live
+  only:
+    - /^ww-user-renter-system_.*$/
+  except:
+    - branchs
+
+deploy:dev:
+  extends: .deploy
+  variables:
+    KUBERNETES_NAMESPACE_VALUE: 1v1-frontend-dev
+    VERSION_NAME: ww-user-renter-system-dev
+    BASE_VERSION: dev
+
+  only:
+    - dev
+  except:
+    - tags
+
+deploy:test:
+  extends: .deploy
+  variables:
+    KUBERNETES_NAMESPACE_VALUE: 1v1-frontend-test
+    VERSION_NAME: ww-user-renter-system-test
+    BASE_VERSION: test
+  only:
+    - test
+  except:
+    - tags
+
+deploy:prod:
+  extends: .deploy
+  variables:
+    KUBERNETES_NAMESPACE_VALUE: 1v1-frontend-prod
+    VERSION_NAME: ww-user-renter-system-prod
+    BASE_VERSION: prod
+  only:
+    - prod
+  except:
+    - tags
+# deploy:live:
+#   extends: .deploy
+#   variables:
+#     PODS: 2
+#     KUBERNETES_NAMESPACE_VALUE: frontend
+#     VERSION_NAME: ww-user-renter-system
+#     BASE_VERSION: live
+#     KUBECTL_CLI_OPTS_CONFIG: "kubectl --kubeconfig=/home/gitlab-runner/k8s-live-config"
+#   allow_failure: false
+#   before_script:
+#     - export result=$(echo $DEPLOY_USER | grep $GITLAB_USER_NAME)
+#     - if [ "$CI_JOB_NAME" == "deploy:live" -a "$result" == "" ]; then echo '没有权限' && exit 1; fi
+#     - bash .bin/check_mr.sh ${CI_COMMIT_SHA}
+#   only:
+#     - /^ww-user-renter-system_.*$/
+#   except:
+#     - branchs
+#   when: manual
+### merge-request ###
+# merge-request:
+#   stage: merge-request
+#   tags:
+#     - k8s
+#   script:
+#     - bash .bin/push_mr.sh ${CI_COMMIT_SHA}
+#   only:
+#     - /^ww-user-renter-system_.*$/
+#   except:
+#     - branchs
+
